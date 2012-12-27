@@ -156,7 +156,7 @@ Does the Arguments square brackets for implicit arguments which are not maximall
 inserted work as well?
 *)
 Reset compose.
-(* nope
+(* nope! The following does not compile.
 Definition compose [A B C] (f : A->B) (g : B->C) (a:A) := g (f a).
 *)
 
@@ -164,3 +164,132 @@ Definition compose {A B C : Set} (f : A->B) (g : B->C) (a:A) := g (f a).
 Print compose.
 
 (* Well, that was the same as before when I didn't specify : Set *)
+
+(* Strange... I've already imported ZArith. I had to import ZArith again. Perhaps
+due to the previous Reset?
+*)
+Require Import ZArith.
+Check (list Z). (* sort Set *)
+
+Section A_declared.
+  Variables (A:Set)(P Q:A -> Prop)(R:A->A->Prop).
+
+  Theorem all_perm : (forall a b :A, R a b) -> forall a b:A, R b a.
+    intro.
+    exact (fun a b : A => H b a).
+  Qed.
+
+  Theorem all_imp_dist : (forall a:A, P a -> Q a) -> (forall a:A, P a) -> forall a:A, Q a.
+    intros H0 H1.
+    exact (fun a : A => H0 a (H1 a)).
+  Qed.
+
+  Theorem all_delta : (forall a b:A, R a b) -> (forall a:A, R a a).
+    intros H0.
+    exact (fun a : A => H0 a a).
+  Qed.
+End A_declared.
+
+Definition my_plus : nat->nat->nat := iterate nat S.
+Eval compute in (my_plus 3 4).
+
+(* We never defined iterate. Just declared it. So Eval resulted in
+"iterate nat S 3 4"
+which is as good as we can do with just a declaration.
+Neat!
+*)
+
+Definition my_mult (n p:nat) : nat := iterate nat (my_plus n) p 0.
+Eval compute in (my_mult 3 4).
+
+Definition my_expo (x n:nat) : nat := iterate nat (my_mult x) n 1.
+
+Definition ackermann (n:nat) : nat -> nat :=
+  iterate (nat -> nat)
+          (fun (f:nat -> nat) (p:nat) => iterate nat f (S p) 1)
+          n
+          S.
+
+(* Well, now I do some strange stuff. I want to check that a term when interpreted as a proposition
+has a given type.
+So I define the term. Then check that the term as a proposition has a type.
+Then I prove the term can be inhabited.
+This is weird, but hey, it works. I'm sure there is a better way.
+*)
+Section Exercise_4_4.
+  Definition id := forall A:Set, A -> A.
+  Check (id -> Prop) : Type.
+  Theorem id_spec : id.
+  Proof.
+    unfold id.
+    intros.
+    apply H.
+  Qed.
+
+  Print id_spec.
+
+  Definition diag := forall A B:Set, (A->A->B)->A->B.
+
+  Check (diag -> Prop) : Type.
+
+  Theorem diag_spec : diag.
+  Proof.
+    unfold diag.
+    exact (fun (A B : Set) (f : A->A->B) A => f A A).
+  Qed.
+
+
+  Definition permute := forall A B C:Set, (A->B->C)->B->A->C.
+  Check (permute -> Prop) : Type.
+
+  Theorem permute_spec : permute.
+  Proof.
+    unfold permute.
+    exact (fun (A B C:Set) (f : A->B->C) B A => f A B).
+  Qed.
+
+  Print permute_spec.
+
+End Exercise_4_4.
+
+Check (forall P:Prop, P->P).
+Check (fun (P:Prop) (p:P) => p).
+
+Section Exercise_4_5.
+  Definition all_perm_def := forall (A:Type) (P:A->A->Prop), (forall x y:A, P x y)
+                                                             -> forall x y:A, P y x.
+
+  Theorem all_perm_4_5 : all_perm_def.
+  Proof.
+    unfold all_perm_def.
+    intros H_A H_P H_0.
+    exact (fun (x y:H_A) => H_0 y x).
+  Qed.
+
+  Print all_perm_4_5.
+  
+  Definition resolution_def :=
+    forall (A:Type) (P Q R S:A -> Prop), (forall a:A, Q a -> R a -> S a)
+                                           -> (forall b:A, P b -> Q b)
+                                                -> (forall c:A, P c -> R c -> S c).
+
+  Theorem resolution_4_5 : resolution_def.
+  Proof.
+    unfold resolution_def.
+    intros.
+    apply H.
+    apply H0.
+    assumption.
+    assumption.
+  Qed.
+
+  Print resolution_4_5.
+End Exercise_4_5.
+
+
+Theorem thirty_six : 9*4=6*6.
+  apply (refl_equal 36).
+Qed.
+
+Print thirty_six.
+
