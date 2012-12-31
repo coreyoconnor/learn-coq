@@ -439,3 +439,39 @@ Section ex_5_5_4.
   Qed.
 End ex_5_5_4.
 
+Require Import Arith.
+
+Definition my_le (n p : nat) :=
+  forall P : nat -> Prop, P n -> (forall q:nat, P q -> P (S q)) -> P p.
+
+Lemma my_le_n : forall n:nat, my_le n n.
+Proof.
+  intro n.
+  unfold my_le.
+  intros P0 H_P0 H_P0_Sq.
+  exact H_P0.
+Qed.
+
+Lemma my_le_S : forall n p : nat, my_le n p -> my_le n (S p).
+Proof.
+  intros n p H_le_n_p.
+  unfold my_le.
+  intros P0 H_P0_S_p.
+  unfold my_le in H_le_n_p.
+  intros H_P0_q_S_q.
+  apply (H_P0_q_S_q p).
+  apply H_le_n_p.
+  exact H_P0_S_p.
+  exact H_P0_q_S_q.
+Qed.
+
+Theorem my_le_le : forall n p:nat,
+                    my_le n p -> n <= p.
+Proof.
+ intros n p H.
+ apply H.
+ auto with arith.
+ auto with arith.
+Qed.
+
+  
