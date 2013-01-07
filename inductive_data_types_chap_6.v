@@ -295,3 +295,56 @@ Section ex_6_6.
     reflexivity.
   Qed.
 End ex_6_6.
+
+Require Import ZArith.
+
+Inductive plane : Set := point : Z -> Z -> plane.
+
+Print plane_ind.
+
+Definition abscissa (p : plane) : Z :=
+  match p with point x y => x end.
+
+Reset plane.
+
+Record plane : Set := point { abscissa : Z; ordinate : Z }.
+
+Print plane.
+
+Print abscissa.
+
+Open Scope Z_scope.
+
+Definition ex_6_8 (p : plane) : Z :=
+  let (abscissa, ordinate) := p
+  in Zabs abscissa + Zabs ordinate.
+
+Eval compute in ex_6_8 (point 1 3).
+
+Inductive vehicle : Set :=
+  | bicycle   : nat -> vehicle
+  | motorized : nat -> nat -> vehicle.
+
+Print vehicle_ind.
+
+Definition nb_wheels (v : vehicle) : nat :=
+  match v with
+  | bicycle _     => 2%nat
+  | motorized _ n => n
+  end.
+
+Definition nb_seats (v : vehicle) : nat :=
+  match v with
+  | bicycle   n   => n
+  | motorized n _ => n
+  end.
+
+Check vehicle_rec.
+
+Definition nb_seats' (v : vehicle) : nat :=
+  vehicle_rec (fun _   => nat)
+              (fun n   => n)
+              (fun n _ => n)
+              v.
+
+Print nb_seats'.
